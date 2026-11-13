@@ -22,6 +22,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 		Sleep(1000);
 #endif
 	SKSE::Init(a_skse, { .trampoline = true, .trampolineSize = 1 << 9 });
+	logger::info("Game version {}", REL::Module::get().version().string());
 
 	SKSE::GetPapyrusInterface()->Register(AutoMove::Papyrus::RegisterFuncs);
 	{

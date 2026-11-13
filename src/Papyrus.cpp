@@ -20,18 +20,30 @@ namespace AutoMove
 		void ForceDestinationMarkerIntoAliasID(RE::TESQuest* script, unsigned int aliasID)
 		{
 			RE::NiPointer<RE::TESObjectREFR> handleptr;
-			if (!GetPlayerCustomDestinationRef())
+			const auto handle = GetPlayerCustomDestinationRef();
+			logger::info("ForceDestinationMarkerIntoAliasID: quest {:08X}, alias {}, marker handle {:X}",
+				script ? script->GetFormID() : 0, aliasID, handle.native_handle());
+			if (!handle || !script)
 				return;
-			[[maybe_unused]] bool result = RE::LookupReferenceByHandle(GetPlayerCustomDestinationRef().native_handle(), handleptr);
-			if (handleptr)
-			{
-				result = ForceRefToAlias(script, aliasID, handleptr.get());
+			RE::LookupReferenceByHandle(handle.native_handle(), handleptr);
+			if (!handleptr) {
+				logger::warn("ForceDestinationMarkerIntoAliasID: marker handle does not resolve to a reference");
+				return;
 			}
+			const auto pos = handleptr->GetPosition();
+			logger::info("ForceDestinationMarkerIntoAliasID: marker ref {:08X} at ({:.0f}, {:.0f}, {:.0f})",
+				handleptr->GetFormID(), pos.x, pos.y, pos.z);
+			ForceRefToAlias(script, aliasID, handleptr.get());
+			RE::NiPointer<RE::TESObjectREFR> filled;
+			RE::LookupReferenceByHandle(script->GetAliasedRef(aliasID).native_handle(), filled);
+			logger::info("ForceDestinationMarkerIntoAliasID: alias {} now holds {:08X}", aliasID, filled ? filled->GetFormID() : 0);
 		}
 
 		bool IsCustomDestinationActive(RE::StaticFunctionTag*)
 		{
-			return (bool)GetPlayerCustomDestinationRef();
+			const bool active = static_cast<bool>(GetPlayerCustomDestinationRef());
+			logger::info("IsCustomDestinationActive: {}", active);
+			return active;
 		}
 
 

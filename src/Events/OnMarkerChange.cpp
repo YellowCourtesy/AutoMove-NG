@@ -24,6 +24,7 @@ namespace AutoMove
 
 		void HKPlacePlayerMarkerCallbackFunctor::RunHook(RE::BSIntrusiveRefCounted* functor, std::uint8_t a_msg)
 		{
+			logger::info("OnCustomMarkerChange: button {}", a_msg);
 			auto onCustomMarkerChange = GetEvent();
 			onCustomMarkerChange->QueueEvent(a_msg);
 			return oPlacePlayerMarker(functor, a_msg);

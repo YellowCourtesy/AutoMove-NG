@@ -17,7 +17,12 @@ namespace AutoMove
 			static REL::Relocation<decltype(AutoMove_CanProcessHook)> oAutoMove_CanProcess;
 			bool AutoMove_CanProcessHook(RE::AutoMoveHandler* thisptr, RE::InputEvent* evt)
 			{
-				return oAutoMove_CanProcess(thisptr, evt) && !GetPlayerCustomDestinationRef();
+				const bool vanilla = oAutoMove_CanProcess(thisptr, evt);
+				const bool hasMarker = static_cast<bool>(GetPlayerCustomDestinationRef());
+				// Log only the key events that the game would handle, to keep the log short.
+				if (vanilla)
+					logger::info("AutoMove key: custom marker {}, vanilla auto move {}", hasMarker, hasMarker ? "blocked" : "allowed");
+				return vanilla && !hasMarker;
 			}
 		}
 
