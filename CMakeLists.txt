@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.21)
 
 
 project(AutoMove VERSION 0.3.0.0 LANGUAGES CXX)
@@ -10,7 +10,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 include(GNUInstallDirs)
-find_package(CommonLibSSE CONFIG REQUIRED)
+
+# CommonLibSSE-NG (alandtse fork) is a git submodule in lib/commonlibsse-ng.
+# Build for flat Skyrim only: SE 1.5.97 and AE 1.6.x / 1.7.x. VR is not supported.
+set(ENABLE_SKYRIM_SE ON CACHE BOOL "" FORCE)
+set(ENABLE_SKYRIM_AE ON CACHE BOOL "" FORCE)
+set(ENABLE_SKYRIM_VR OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(lib/commonlibsse-ng EXCLUDE_FROM_ALL)
+include(lib/commonlibsse-ng/cmake/CommonLibSSE.cmake)
 
 
 
@@ -75,29 +83,25 @@ target_compile_features(
         cxx_std_23
 )
 
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+endif()
+
 target_precompile_headers(
     ${PROJECT_NAME}
     PRIVATE
         src/PCH.h
 )
 
-target_compile_definitions(
-    ${PROJECT_NAME}
-    PUBLIC
-        WINVER=0x0601	# windows 7, minimum supported version by skyrim special edition
-        _WIN32_WINNT=0x0601
-        "$<$<BOOL:${SKSE_SUPPORT_XBYAK}>:SKSE_SUPPORT_XBYAK=1>"
-        "$<$<BOOL:${ENABLE_SKYRIM_SE}>:ENABLE_SKYRIM_SE=1>"
-        "$<$<BOOL:${ENABLE_SKYRIM_AE}>:ENABLE_SKYRIM_AE=1>"
-        "$<$<BOOL:${ENABLE_SKYRIM_VR}>:ENABLE_SKYRIM_VR=0>"
-        "$<$<BOOL:${WAIT_FOR_DEBUGGER}>:WAIT_FOR_DEBUGGER=1>"
-)
 
-add_custom_command(
-    TARGET ${PROJECT_NAME}
-    POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "$ENV{MO_SSE_INSTANCE}/mods/${PROJECT_PLUGIN_NAME}/SKSE/Plugins/"
-)
+# Copy the dll into Mod Organizer only when MO_SSE_INSTANCE is set (not in CI).
+if(DEFINED ENV{MO_SSE_INSTANCE})
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "$ENV{MO_SSE_INSTANCE}/mods/${PROJECT_PLUGIN_NAME}/SKSE/Plugins/"
+    )
+endif()
 
-find_package(Python)
-install(CODE "execute_process(COMMAND \"${_Python_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/mkrelease.py\" -v ${PROJECT_VERSION} -n \"${PROJECT_PLUGIN_NAME}\" -f \"$<TARGET_FILE:${PROJECT_NAME}>\" -o \"${PROJECT_NAME}\")")
+find_package(Python3 COMPONENTS Interpreter)
+install(CODE "execute_process(COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/mkrelease.py\" -v ${PROJECT_VERSION} -n \"${PROJECT_PLUGIN_NAME}\" -f \"$<TARGET_FILE:${PROJECT_NAME}>\" -o \"${PROJECT_NAME}\")")

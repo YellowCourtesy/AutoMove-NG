@@ -6,9 +6,7 @@ import subprocess
 
 ENCODING = 'utf-8'
 VCPKG_FILE = 'vcpkg.json'
-VCPKG_CFG_FILE = 'vcpkg-configuration.json'
 VCPKG_URL = r'https://github.com/microsoft/vcpkg.git/'
-VCPKG_COLORGLASS_URL = r'https://gitlab.com/colorglass/vcpkg-colorglass.git/'
 VCPKG_INSTALLATION_ROOT = os.path.expanduser(os.path.expandvars('%VCPKG_INSTALLATION_ROOT%'))
 
 
@@ -54,16 +52,6 @@ def run() -> None:
             data['builtin-baseline'] = commit
 
             with open(VCPKG_FILE, encoding=ENCODING, mode='w') as f:
-                json.dump(data, f, indent=2)
-
-    if commit := get_latest_baseline_commit(VCPKG_COLORGLASS_URL, 'main'):
-        with open(VCPKG_CFG_FILE, encoding=ENCODING) as f:
-            data = json.load(f)
-
-        if data['registries'][0]['baseline'] != commit:
-            data['registries'][0]['baseline'] = commit
-
-            with open(VCPKG_CFG_FILE, encoding=ENCODING, mode='w') as f:
                 json.dump(data, f, indent=2)
 
             if update_local_vcpkg():

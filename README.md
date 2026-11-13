@@ -10,27 +10,39 @@
   - Install this mod, make sure this mod overwrites `AutoMove.dll`.
  
  
+ ## Supported game versions
+
+ Skyrim SE 1.5.97 and Skyrim AE 1.6.x / 1.7.x (newest: 1.7.104), through Address Library. VR is not supported.
+
  ## Build
- 
+
+ Every push builds the dll in GitHub Actions (`.github/workflows/build.yml`). Download it from the "AutoMove-NG" artifact of the workflow run.
+
  ### Requirements
- 
-  - Visual Studio 2022
-  - Mod Organizer 2 as your mod manager
-  - cmake
-  - vcpkg
+
+  - Visual Studio 2022 (or newer) with the C++ desktop workload
+  - cmake 3.21 or newer, and Ninja
+  - vcpkg, with environment variable `VCPKG_ROOT` set to its folder
   - A python 3 install for scripts
-  
- ### Commands
- 
- Set environment variable `MO_SSE_INSTANCE` to the folder path of your Skyrim Special Edition Mod Organizer instance. You will see mods, profiles, overwrite etc in the folder if its the right one. It will expect a mod with the same name as `PROJECT_PLUGIN_NAME` (in this case, "AutoMove NG") in mod organizer to copy fresh binary builds into. Ensure this mod along with the SKSE/Plugins folder is created.
- 
- You might need to update the vcpkg baselines, so run `py scripts/update-baselines.py` before the build if you encounter issues.
- 
- Build with:
- 
+  - Optional: Mod Organizer 2
+
+ The library [CommonLibSSE-NG](https://github.com/alandtse/CommonLibSSE-NG) is a git submodule in `lib/commonlibsse-ng`. Get it with:
+
  ```
- cmake --preset vs2022-windows
- cmake --build build --config (Debug|Release)
+ git submodule update --init --recursive
  ```
 
- If you want to release a build on nexus or something, run `cmake --install build` which will run `scripts/mkrelease.py` to auto zip a build installable by ModOrganizer or vortex.
+ ### Commands
+
+ Optional: set environment variable `MO_SSE_INSTANCE` to the folder of your Skyrim Special Edition Mod Organizer instance. Then each build copies the dll into the mod "AutoMove NG" (`PROJECT_PLUGIN_NAME`), folder `SKSE/Plugins`. Make this mod and folder first.
+
+ Build with (from a Visual Studio developer prompt):
+
+ ```
+ cmake --preset ninja-msvc-release
+ cmake --build build --target AutoMove
+ ```
+
+ Or use the `vs2022-windows` preset with `cmake --build build --config (Debug|Release)`.
+
+ To make a release zip for Nexus, run `py scripts/mkrelease.py -v <version> -n "AutoMove NG" -f build/AutoMove.dll -o AutoMove`.

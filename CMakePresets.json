@@ -1,6 +1,9 @@
 {
+  "version": 3,
   "configurePresets": [
     {
+      "name": "cmake-dev",
+      "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": {
@@ -11,24 +14,24 @@
       "errors": {
         "deprecated": true
       },
-      "hidden": true,
-      "name": "cmake-dev",
       "warnings": {
         "deprecated": true,
         "dev": true
       }
     },
     {
+      "name": "vcpkg",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "STRING",
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         }
-      },
-      "hidden": true,
-      "name": "vcpkg"
+      }
     },
     {
+      "name": "windows",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_MSVC_RUNTIME_LIBRARY": {
           "type": "STRING",
@@ -38,36 +41,40 @@
           "type": "STRING",
           "value": "x64-windows-static-md"
         }
-      },
-      "hidden": true,
-      "name": "windows"
+      }
     },
     {
+      "name": "vs2022-windows",
+      "inherits": ["cmake-dev", "vcpkg", "windows"],
+      "generator": "Visual Studio 17 2022",
       "architecture": {
         "strategy": "set",
         "value": "x64"
       },
+      "toolset": "v143",
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /WX"
-      },
-      "generator": "Visual Studio 17 2022",
-      "inherits": [
-        "cmake-dev",
-        "vcpkg",
-        "windows"
-      ],
-      "name": "vs2022-windows",
-      "toolset": "v143"
+        "CMAKE_CXX_FLAGS": "/EHsc /MP"
+      }
     },
     {
+      "name": "clang-windows",
+      "inherits": ["cmake-dev", "vcpkg", "windows"],
+      "generator": "Ninja"
+    },
+    {
+      "name": "ninja-msvc-release",
+      "displayName": "Ninja + MSVC, Release (used by CI)",
+      "inherits": ["cmake-dev", "vcpkg", "windows"],
       "generator": "Ninja",
-      "inherits": [
-        "cmake-dev",
-        "vcpkg",
-        "windows"
-      ],
-      "name": "clang-windows"
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "Release"
+        },
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_CXX_FLAGS": "/EHsc"
+      }
     }
-  ],
-  "version": 3
+  ]
 }

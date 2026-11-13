@@ -1,0 +1,73 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg-cache,readwrite
+
+    steps:
+      - name: Check out source and submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Read vcpkg baseline
+        id: baseline
+        shell: pwsh
+        run: |
+          $b = (Get-Content vcpkg.json | ConvertFrom-Json).'builtin-baseline'
+          "commit=$b" >> $env:GITHUB_OUTPUT
+
+      - name: Set up vcpkg
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          git -C "$env:VCPKG_ROOT" checkout ${{ steps.baseline.outputs.commit }}
+          & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/vcpkg-cache" | Out-Null
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      - name: Set up CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure
+        run: cmake --preset ninja-msvc-release
+
+      - name: Build
+        run: cmake --build build --target AutoMove
+
+      - name: Make release zip
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path CMakeLists.txt -Pattern 'project\(AutoMove VERSION ([0-9.]+)').Matches[0].Groups[1].Value
+          python scripts/mkrelease.py -v $v -n "AutoMove NG" -f build/AutoMove.dll -o AutoMove
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: AutoMove-NG
+          path: |
+            dist/*.zip
+            build/AutoMove.dll
+            build/AutoMove.pdb
+          if-no-files-found: error

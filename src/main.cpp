@@ -21,8 +21,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 	while (!IsDebuggerPresent())
 		Sleep(1000);
 #endif
-	SKSE::Init(a_skse);
-	SKSE::AllocTrampoline(1 << 9);
+	SKSE::Init(a_skse, { .trampoline = true, .trampolineSize = 1 << 9 });
 
 	SKSE::GetPapyrusInterface()->Register(AutoMove::Papyrus::RegisterFuncs);
 	{
