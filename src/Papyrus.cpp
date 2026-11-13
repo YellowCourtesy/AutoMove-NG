@@ -22,7 +22,7 @@ namespace AutoMove
 			RE::NiPointer<RE::TESObjectREFR> handleptr;
 			if (!GetPlayerCustomDestinationRef())
 				return;
-			bool result = RE::LookupReferenceByHandle(GetPlayerCustomDestinationRef().native_handle(), handleptr);
+			[[maybe_unused]] bool result = RE::LookupReferenceByHandle(GetPlayerCustomDestinationRef().native_handle(), handleptr);
 			if (handleptr)
 			{
 				result = ForceRefToAlias(script, aliasID, handleptr.get());

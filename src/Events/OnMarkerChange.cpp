@@ -9,9 +9,9 @@ namespace AutoMove
 	{
 		// Event Hook
 
-		SKSE::RegistrationSet<RE::IMessageBoxCallback::Message>* HKPlacePlayerMarkerCallbackFunctor::GetEvent()
+		SKSE::RegistrationSet<std::uint8_t>* HKPlacePlayerMarkerCallbackFunctor::GetEvent()
 		{
-			static SKSE::RegistrationSet<RE::IMessageBoxCallback::Message> onCustomMarkerChange("OnCustomMarkerChange");
+			static SKSE::RegistrationSet<std::uint8_t> onCustomMarkerChange("OnCustomMarkerChange");
 			return &onCustomMarkerChange;
 		}
 
@@ -22,7 +22,7 @@ namespace AutoMove
 			oPlacePlayerMarker = MarkerFunctorVTBL.write_vfunc(1, HKPlacePlayerMarkerCallbackFunctor::RunHook);
 		}
 
-		void HKPlacePlayerMarkerCallbackFunctor::RunHook(RE::BSIntrusiveRefCounted* functor, RE::IMessageBoxCallback::Message a_msg)
+		void HKPlacePlayerMarkerCallbackFunctor::RunHook(RE::BSIntrusiveRefCounted* functor, std::uint8_t a_msg)
 		{
 			auto onCustomMarkerChange = GetEvent();
 			onCustomMarkerChange->QueueEvent(a_msg);

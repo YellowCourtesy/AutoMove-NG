@@ -9,12 +9,12 @@ namespace AutoMove
 		public:
 			inline static constexpr auto VTABLE = RE::VTABLE___PlacePlayerMarkerCallbackFunctor;
 
-			static void RunHook(RE::BSIntrusiveRefCounted* functor, RE::IMessageBoxCallback::Message a_msg);
+			static void RunHook(RE::BSIntrusiveRefCounted* functor, std::uint8_t a_msg);
 
 			static void InstallHook();
 			static void RegisterPapyrus(RE::BSScript::IVirtualMachine* a_vm);
 
-			static SKSE::RegistrationSet<RE::IMessageBoxCallback::Message>* GetEvent();
+			static SKSE::RegistrationSet<std::uint8_t>* GetEvent();
 		};
 
 	}
